@@ -1,0 +1,139 @@
+﻿using System.Reflection;
+using System.Linq;
+using System;
+using System.Text;
+
+namespace High_Quality_Mistakes.Models
+{
+    public class Spy
+    {
+        public string StealMethodInfo(string classToInvestigate, params string[] fields)
+        {
+            var classType = Assembly
+                .GetExecutingAssembly()
+                .GetTypes()
+                .FirstOrDefault(x => x.Name == classToInvestigate);
+
+            var activatedClass = (Hacker)Activator.CreateInstance(classType);
+
+            var output = new StringBuilder();
+            output.AppendLine($"Class under investigation: {classToInvestigate}");
+
+            for (int i = 0; i < fields.Length; i++)
+            {
+                var field = classType.GetField(fields[i],
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+                var fieldValue = field.GetValue(activatedClass);
+                output.AppendLine($"{field.Name} = {fieldValue}");
+
+            }
+
+            output = output.Remove(output.Length - 2, 2);
+
+            return output.ToString();
+        }
+
+        public string AnalyzeAcessModifiers(string className)
+        {
+            var classType = Assembly
+             .GetExecutingAssembly()
+             .GetTypes()
+             .FirstOrDefault(x => x.Name == className);
+
+            var publicFields = classType.GetFields(BindingFlags.Public |
+                BindingFlags.Instance | BindingFlags.Static);
+
+            var publicMethods = classType.GetMethods(BindingFlags.Public
+                | BindingFlags.Instance | BindingFlags.Static);
+
+            var nonPublicMethods = classType.GetMethods(BindingFlags.NonPublic
+                | BindingFlags.Instance | BindingFlags.Static);
+
+            var getters = nonPublicMethods.Where(x => x.Name.StartsWith("get"));
+            var setters = publicMethods.Where(x => x.Name.StartsWith("set"));
+
+            var output = new StringBuilder();
+
+            foreach (var field in publicFields)
+            {
+                output.AppendLine($"{field.Name} must be private!");
+            }
+
+            foreach (var getter in getters)
+            {
+                output.AppendLine($"{getter.Name} have to be public!");
+            }
+
+            foreach (var setter in setters)
+            {
+                output.AppendLine($"{setter.Name} have to be private!");
+            }
+
+            if (output.Length != 0)
+            {
+                output = output.Remove(output.Length - 2, 2);
+            }
+
+            return output.ToString();
+        }
+
+        public string RevealPrivateMethods(string className)
+        {
+            var classType = Assembly
+           .GetExecutingAssembly()
+           .GetTypes()
+           .FirstOrDefault(x => x.Name == className);
+
+            var activatedClass = (Hacker)Activator.CreateInstance(classType);
+
+            var privateMethods = classType.GetMethods
+                (BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+
+            var baseClass = activatedClass.GetType().BaseType;
+
+            var output = new StringBuilder();
+
+            output.AppendLine($"All Private Methods of Class: {classType.Name}");
+            output.AppendLine($"Base Class: {baseClass.Name}");
+
+            foreach (var method in privateMethods)
+            {
+                output.AppendLine(method.Name);
+            }
+
+            output = output.Remove(output.Length - 2, 2);
+
+            return output.ToString();
+        }
+
+        public string CollectGettersAndSetters(string name)
+        {
+            var classType = Assembly
+        .GetExecutingAssembly()
+        .GetTypes()
+        .FirstOrDefault(x => x.Name == name);
+
+            var publicMethods = classType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic
+                | BindingFlags.Instance | BindingFlags.Static);
+
+            var output = new StringBuilder();
+
+            foreach (var getter in publicMethods.Where(x => x.Name.StartsWith("get")))
+            {
+                output.AppendLine($"{getter.Name} will return {getter.ReturnType}");
+            }
+
+            foreach (var setter in publicMethods.Where(x => x.Name.StartsWith("set")))
+            {
+                output.AppendLine($"{setter.Name} will set field of {setter.ReturnParameter}s");
+            }
+
+            if (output.Length > 0)
+            {
+                output = output.Remove(output.Length - 2, 2);
+            }
+
+            return output.ToString();
+        }
+    }
+}
